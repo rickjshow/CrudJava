@@ -35,7 +35,7 @@ public class UserView {
                 String email = textField3.getText();
 
                 if (name.isEmpty() || ageText.isEmpty() || email.isEmpty()){
-                    JOptionPane.showMessageDialog(null, "Por favor preencha todos os campos", "Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("Por favor preencha todos os campos");
                     return;
                 }
 
@@ -43,29 +43,29 @@ public class UserView {
                 try {
                     age = Integer.parseInt(ageText);
                     if (age <= 0){
-                        JOptionPane.showMessageDialog(null,"Coloque uma idade válida","Erro",JOptionPane.ERROR_MESSAGE);
+                        showError("Coloque uma idade válida");
                         return;
                     }
                 } catch (NumberFormatException exception){
-                    JOptionPane.showMessageDialog(null,"A idade deve ser um numero inteiro", "Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("A idade deve ser um numero inteiro");
                     return;
                 }
 
-                if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
-                    JOptionPane.showMessageDialog(null, "O email inserido não é válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+                if (!verifyEmail(email)) {
+                    showError("O email inserido não é válido.");
                     return;
                 }
 
                 try {
                     if (controller.saveUser(name, age, email) == true){
-                        JOptionPane.showMessageDialog(null,"Usuário inserido com sucesso","Sucesso",JOptionPane.INFORMATION_MESSAGE);
+                        showSucess("Usuário inserido com sucesso");
                         loadUsersIntoTable();
                         clearFields();
-                    }else if (controller.saveUser(name, age, email) == false){
-                        JOptionPane.showMessageDialog(null,"Esse nome de usuário já existe!","Erro",JOptionPane.ERROR_MESSAGE);
+                    }else{
+                        showError("Esse nome de usuário já existe!");
                     }
                 } catch (Exception exception){
-                    JOptionPane.showMessageDialog(null,"Ocorreu um erro ao salvar o Usuário","Erro",JOptionPane.ERROR_MESSAGE);
+                    showError("Ocorreu um erro ao salvar o Usuário");
                 }
             }
         });
@@ -78,7 +78,7 @@ public class UserView {
                 String idText = textField4.getText();
 
                 if (idText.isEmpty()){
-                    JOptionPane.showMessageDialog(null,"Por favor preencha o campo","Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("Por favor preencha o campo");
                     return;
                 }
 
@@ -90,7 +90,7 @@ public class UserView {
                     UserModel searchedUser = controller.getUser(id);
 
                     if(searchedUser == null) {
-                        JOptionPane.showMessageDialog(null,"Nenhum usuário encontrado","Erro",JOptionPane.ERROR_MESSAGE);
+                        showError("Nenhum usuário encontrado");
                         return;
                     }
 
@@ -103,7 +103,7 @@ public class UserView {
                     textField2.setText(String.valueOf(searchedUser.getAge()));
                     textField3.setText(searchedUser.getEmail());
                 } catch (SQLException exception){
-                    JOptionPane.showMessageDialog(null,"Erro ao buscar usuário","Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("Erro ao buscar usuário");
                 }
             }
         });
@@ -117,7 +117,7 @@ public class UserView {
                 String Idtext = textField4.getText();
 
                 if (name.isEmpty() || ageText.isEmpty() || email.isEmpty() || Idtext.isEmpty()){
-                    JOptionPane.showMessageDialog(null, "Por favor preencha todos os campos", "Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("Por favor preencha todos os campos");
                     return;
                 }
 
@@ -125,11 +125,11 @@ public class UserView {
                 try {
                     age = Integer.parseInt(ageText);
                     if (age <= 0){
-                        JOptionPane.showMessageDialog(null,"Coloque uma idade válida","Erro",JOptionPane.ERROR_MESSAGE);
+                        showError("Coloque uma idade válida");
                         return;
                     }
                 } catch (NumberFormatException exception){
-                    JOptionPane.showMessageDialog(null,"A idade deve ser um numero inteiro", "Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("A idade deve ser um numero inteiro");
                     return;
                 }
 
@@ -137,25 +137,25 @@ public class UserView {
                 try {
                     id = Integer.parseInt(Idtext);
                 } catch (NumberFormatException exception){
-                   JOptionPane.showMessageDialog(null, "O id deve ser um numero inteiro", "Erro", JOptionPane.ERROR_MESSAGE);
+                   showError("O id deve ser um numero inteiro");
                    return;
                 }
 
-                if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
-                    JOptionPane.showMessageDialog(null, "O email inserido não é válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+                if (!verifyEmail(email)) {
+                    showError("O email inserido é invalido!");
                     return;
                 }
 
                 try{
                     if(controller.updateUser(name, age, email, id) == true){
-                        JOptionPane.showMessageDialog(null,"Usuário atualizado com sucesso!","Sucesso",JOptionPane.INFORMATION_MESSAGE);
+                        showSucess("Usuario atualizado com sucesso!");
                         loadUsersIntoTable();
                         clearFields();
                     }else{
-                        JOptionPane.showMessageDialog(null,"Esse nome ja existe!","Erro",JOptionPane.ERROR_MESSAGE);
+                        showError("Esse nome de usuário já existe!");
                     }
                 } catch (Exception exception){
-                    JOptionPane.showMessageDialog(null,"Nao foi possível atualizar o usuário","Erro",JOptionPane.ERROR_MESSAGE);
+                    showError("Nao foi possível atualizar o usuário!");
                 }
             }
         });
@@ -165,7 +165,7 @@ public class UserView {
                 String idText = textField4.getText();
 
                 if(idText.isEmpty()){
-                    JOptionPane.showMessageDialog(null,"Selecione um usuário","Erro",JOptionPane.ERROR_MESSAGE);
+                    showError("Selecione um usuário");
                     return;
                 }
 
@@ -173,16 +173,16 @@ public class UserView {
                 try {
                     id = Integer.parseInt(idText);
                 } catch (NumberFormatException exception){
-                    JOptionPane.showMessageDialog(null, "O id deve ser um numero inteiro", "Erro", JOptionPane.ERROR_MESSAGE);
+                    showError("O id deve ser um numero inteiro");
                     return;
                 }
                 try{
                     controller.deleteUser(id);
-                    JOptionPane.showMessageDialog(null,"Usuário excluido com sucesso!","Erro",JOptionPane.INFORMATION_MESSAGE);
+                    showSucess("Usuário excluido com sucesso!");
                     loadUsersIntoTable();
                     clearFields();
                 } catch (Exception exception){
-                    JOptionPane.showMessageDialog(null,"Nao foi possível excluir o usuário","Erro",JOptionPane.ERROR_MESSAGE);
+                    showError("Nao foi possível excluir o usuário");
                 }
             }
         });
@@ -208,7 +208,7 @@ public class UserView {
             table1.setModel(model);
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Erro ao carregar dados da tabela: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            showError("Erro ao carregar dados da tabela: " + e.getMessage());
         }
     }
 
@@ -217,5 +217,17 @@ public class UserView {
         textField2.setText("");
         textField3.setText("");
         textField4.setText("");
+    }
+
+    private void showError(String message){
+        JOptionPane.showMessageDialog(null,message,"Erro",JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSucess(String message){
+        JOptionPane.showMessageDialog(null,message,"Sucesso",JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private boolean verifyEmail(String email){
+        return email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
     }
 }

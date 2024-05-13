@@ -1,62 +1,53 @@
 package Controllers;
 
 import Models.UserModel;
-import Views.UserView;
 
-import javax.swing.*;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
 public class UserController {
 
+    private final UserModel userModel;
+
+    public UserController() {
+        this.userModel = new UserModel();
+    }
+
     public boolean saveUser(String name, int age, String email) throws SQLException {
-        UserModel userModel = new UserModel();
-
-        userModel.setName(name);
-        userModel.setAge(age);
-        userModel.setEmail(email);
-        userModel.setDate(new Timestamp(System.currentTimeMillis()));
-
-        if(!userModel.verificarUser(name)) {
-           return userModel.saveUser();
-        }else{
-            return false;
-        }
-    }
-
-    public List<UserModel> getUsers() throws SQLException {
-        UserModel userModel = new UserModel();
-        return userModel.getUsers();
-    }
-
-    public UserModel getUser(int id) throws SQLException {
-        UserModel userModel = new UserModel();
-        return userModel.getUser(id);
-    }
-
-    public boolean updateUser(String name, int age, String email, int id) throws SQLException {
-
-        try{
-            UserModel userModel = new UserModel();
-
-            userModel.setName(name);
-            userModel.setAge(age);
-            userModel.setEmail(email);
-            userModel.setId(id);
-
-            return userModel.updateUser(name, age, email, id);
-        } catch (SQLException e){
-            e.printStackTrace();
+        if (!userModel.verificarUser(name)) {
+            UserModel newUser = new UserModel();
+            newUser.setName(name);
+            newUser.setAge(age);
+            newUser.setEmail(email);
+            newUser.setDate(new Timestamp(System.currentTimeMillis()));
+            return newUser.saveUser();
         }
         return false;
     }
 
-    public void deleteUser(int id) throws SQLException{
-        UserModel userModel = new UserModel();
+    public List<UserModel> getUsers() throws SQLException {
+        return userModel.getUsers();
+    }
 
-        userModel.setId(id);
+    public UserModel getUser(int id) throws SQLException {
+        return userModel.getUser(id);
+    }
 
+    public boolean updateUser(String name, int age, String email, int id) throws SQLException {
+        UserModel existingUser = userModel.getUser(id);
+        if (existingUser != null) {
+            existingUser.setName(name);
+            existingUser.setAge(age);
+            existingUser.setEmail(email);
+            return userModel.updateUser(name, age, email, id);
+        } else {
+            throw new IllegalArgumentException("Usuário não encontrado");
+        }
+    }
+
+    public void deleteUser(int id) throws SQLException {
         userModel.delete(id);
     }
 }
+

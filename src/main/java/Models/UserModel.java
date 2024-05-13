@@ -4,10 +4,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import Controllers.UserController;
-
-import javax.xml.transform.Result;
-
 public class UserModel {
     private int id;
     private String name;
@@ -38,194 +34,96 @@ public class UserModel {
 
 
     public boolean saveUser() throws SQLException {
-        Connection connection = null;
-        PreparedStatement statement = null;
+        try (Connection connection = DataBase.connection();
+             PreparedStatement statement = connection.prepareStatement("INSERT INTO user (Name, Age, Email, Creation_date) VALUES (?,?,?,?)")) {
 
-        try {
-            connection = DataBase.connection();
-
-            String sql = "INSERT INTO user (Name, Age, Email, Creation_date) VALUES (?,?,?,?)";
-            statement = connection.prepareStatement(sql);
             statement.setString(1, name);
             statement.setInt(2, age);
             statement.setString(3, email);
             statement.setTimestamp(4, date);
 
             int result = statement.executeUpdate();
-
-            if (result > 0){
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
+            return result > 0;
         }
-        return false;
     }
 
     public List<UserModel> getUsers() throws SQLException {
         List<UserModel> users = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement statement = null;
-
-        try {
-            connection = DataBase.connection();
-
-            statement = connection.prepareStatement("SELECT * FROM user");
-
-            ResultSet resultSet = statement.executeQuery();
+        try (Connection connection = DataBase.connection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT * FROM user")) {
 
             while (resultSet.next()) {
-                UserModel user = new UserModel();
-                user.setId(resultSet.getInt("Id"));
-                user.setName(resultSet.getString("Name"));
-                user.setAge(resultSet.getInt("Age"));
-                user.setEmail(resultSet.getString("Email"));
-                user.setDate(resultSet.getTimestamp("Creation_date"));
-
+                UserModel user = extractUserFromResultSet(resultSet);
                 users.add(user);
             }
-
-            resultSet.close();
-            statement.close();
-            connection.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return users;
     }
 
     public UserModel getUser(int id) throws SQLException {
-        UserModel user = null;
-        Connection connection = null;
-        PreparedStatement statement = null;
+        try (Connection connection = DataBase.connection();
+             PreparedStatement statement = connection.prepareStatement("SELECT * FROM user WHERE id = ?")) {
 
-        try {
-            connection = DataBase.connection();
-
-            statement = connection.prepareStatement("SELECT * FROM user WHERE id = ?");
             statement.setInt(1, id);
 
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                user = new UserModel();
-                user.setId(resultSet.getInt("Id"));
-                user.setName(resultSet.getString("Name"));
-                user.setAge(resultSet.getInt("Age"));
-                user.setEmail(resultSet.getString("Email"));
-                user.setDate(resultSet.getTimestamp("Creation_date"));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return extractUserFromResultSet(resultSet);
+                }
             }
-
-            resultSet.close();
-            statement.close();
-            connection.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return user;
+        return null;
     }
 
     public boolean updateUser(String name, int age, String email, int id) throws SQLException {
-        Connection connection = null;
-        PreparedStatement statement = null;
+        if (verificarUser(name) && !getUser(id).getName().equals(name)) {
+            return false;
+        }
 
-        try {
-            if(verificarUser(name) && !getUser(id).getName().equals(name)){
-                return false;
-            }
+        try (Connection connection = DataBase.connection();
+             PreparedStatement statement = connection.prepareStatement("UPDATE user SET Name = ?, Age = ?, Email = ? WHERE id = ?")) {
 
-            connection = DataBase.connection();
-            String sql = "UPDATE user SET Name = ?, Age = ?, Email = ? WHERE id = ?";
-            statement = connection.prepareStatement(sql);
             statement.setString(1, name);
             statement.setInt(2, age);
             statement.setString(3, email);
             statement.setInt(4, id);
 
-           int result = statement.executeUpdate();
-
-           if(result == 0){
-               return false;
-           }
-
-        } catch (SQLException e){
-            e.printStackTrace();
-        } finally {
-            // Fechar recursos
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
+            int result = statement.executeUpdate();
+            return result > 0;
         }
-        return true;
     }
 
-    public boolean verificarUser (String name) throws  SQLException{
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
+    public boolean delete(int id) throws SQLException {
+        try (Connection connection = DataBase.connection();
+             PreparedStatement statement = connection.prepareStatement("DELETE FROM user WHERE id = ?")) {
 
-        try{
-            connection = DataBase.connection();
-            String sql = "SELECT Name FROM user WHERE Name = ?";
-            statement = connection.prepareStatement(sql);
-            statement.setString(1,name);
-            resultSet = statement.executeQuery();
-
-            return resultSet.next();
-
-        } catch (SQLException e){
-            e.printStackTrace();
-        }finally {
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
-        }
-        return false;
-    }
-
-    public boolean delete(int id) throws SQLException{
-        Connection connection = null;
-        PreparedStatement statement = null;
-
-        try{
-            connection = DataBase.connection();
-            String sql = "DELETE FROM user WHERE id = ?";
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1,id);
+            statement.setInt(1, id);
 
             int result = statement.executeUpdate();
+            return result > 0;
+        }
+    }
 
-            if (result > 0){
-                return true;
-            }
+    private UserModel extractUserFromResultSet(ResultSet resultSet) throws SQLException {
+        UserModel user = new UserModel();
+        user.setId(resultSet.getInt("Id"));
+        user.setName(resultSet.getString("Name"));
+        user.setAge(resultSet.getInt("Age"));
+        user.setEmail(resultSet.getString("Email"));
+        user.setDate(resultSet.getTimestamp("Creation_date"));
+        return user;
+    }
 
-        } catch (SQLException e){
-            e.printStackTrace();
+    public boolean verificarUser(String name) throws SQLException {
+        try (Connection connection = DataBase.connection();
+             PreparedStatement statement = connection.prepareStatement("SELECT Name FROM user WHERE Name = ?")) {
 
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
+            statement.setString(1, name);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
             }
         }
-        return false;
     }
 }
